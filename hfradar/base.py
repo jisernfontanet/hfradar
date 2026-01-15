@@ -60,11 +60,10 @@ def get_hfr_noise(datain, maxit=10, ksigma=3, return_coeff=False, nobs=None):
 
     w1 = np.ma.array(data=w1, mask=mask == 0).reshape((nt, nb * nr))
 
-    # Add the mask and normalize to get noise. If the input field is the averagen of differentn
-    # value, correct for this. Normalize to the maximum number of observations
+    # Add the mask and normalize to get noise. If the input field is the average of different
+    # values, correct for this. Normalize to the maximum number of observations
 
     w1 = w1 / sigmae * np.sqrt(nobs.reshape((nt, nb * nr))) / np.sqrt(np.max(nobs))
-    # w1 = w1 / sigmae * np.sqrt(nobs.reshape((nt, nb * nr)))
 
     # Apply k-sigma clipping over each time to estimate noise std
 
@@ -76,7 +75,7 @@ def get_hfr_noise(datain, maxit=10, ksigma=3, return_coeff=False, nobs=None):
     # Depending on the output, return wavelet coefficients
 
     if return_coeff:
-        w1 = w1 / sigma[:, np.newaxis]
+        #w1 = w1 / sigma[:, np.newaxis]
         return sigma, w1.reshape((nt, nr, nb))
     else:
         return sigma
