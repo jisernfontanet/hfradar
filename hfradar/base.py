@@ -5,6 +5,7 @@ import os
 # Import scientific modules
 
 import numpy as np
+import xarray as xr
 
 
 def lmercator(xin_, yin_, lon0=0, lat0=0, radius=6371000.0, inverse=False):
@@ -89,17 +90,20 @@ def getinfo(ds, nmin=10, flagname='PRIM', flagvalue=1):
     return lon, lat, flag
 
 
-def get_rmse_pairs(ds1, ds2, maxdist=150, nmin=10, flagname='PRIM', flagvalue=1):
+def hfr_rmse_pairs(ds1, ds2, maxdist=150, nmin=10, rmin=0, rmax=500,
+                   flagname='PRIM', flagvalue=1):
     """
     Compute the Root Mean Square Error between two time-series
     """
     # Parameters
 
-    bname = 'bearing'  # Name for the bearing coordinate
-    velname = 'VELO'  # Name for the radial velocity
+    bname = 'bearing'                # Name for the bearing coordinate
+    rname = 'range'                  # Name for the range coordinate
+    velname = 'VELO'                 # Name for the radial velocity
     dtmax = np.timedelta64(55, 'm')  # Maximum seoaration of time
 
-    # Sincronize time series. Get the indices that match the same times in both time series
+    # Synchronize time series. Get the indices that match the same
+    # times in both time series
 
     it2 = synchronize(ds1.time.data, ds2.time.data, dxmax=dtmax)
     it1 = np.arange(ds1.time.data.shape[0])[np.logical_not(it2.mask)]
@@ -107,20 +111,37 @@ def get_rmse_pairs(ds1, ds2, maxdist=150, nmin=10, flagname='PRIM', flagvalue=1)
 
     # Extract information from the DtaSets in the needed format
 
-    lon1, lat1, flag1 = getinfo(ds1, nmin=nmin, flagname=flagname, flagvalue=flagvalue)
-    lon2, lat2, flag2 = getinfo(ds2, nmin=nmin, flagname=flagname, flagvalue=flagvalue)
+    lon1, lat1, flag1 = getinfo(ds1, nmin=nmin,
+                                flagname=flagname, flagvalue=flagvalue)
+    lon2, lat2, flag2 = getinfo(ds2, nmin=nmin,
+                                flagname=flagname, flagvalue=flagvalue)
 
     # Find pairs of data. The first index corresponds to the range, the
     # second to the bearing
 
-    ir1, ib1, ir2, ib2 = findpairs2d(lon1, lat1, lon2, lat2, maxdist=maxdist, latlon=True)
+    ir1, ib1, ir2, ib2 = findpairs2d(lon1, lat1, lon2, lat2,
+                                     maxdist=maxdist, latlon=True)
+
+    # Keep only pairs within certain ranges
+
+    range1 = ds1[rname][ir1].data
+    range2 = ds2[rname][ir2].data
+    index = np.logical_and(np.logical_and(range1 >= rmin,
+                                          range1 <= rmax),
+                           np.logical_and(range2 >= rmin,
+                                          range2 <= rmax))
+    ir1 = ir1[index]
+    ib1 = ib1[index]
+    ir2 = ir2[index]
+    ib2 = ib2[index]
 
     # Compute the angle between bearings
 
     angle = ds1[bname][ib1].data - ds2[bname][ib2].data
 
-    # Extract the data for the selected pairs. Use the sincronization indices computed before.
-    # It does not exploits the flexibility of xarray, but it works.
+    # Extract the data for the selected pairs. Use the synchronization
+    # indices computed before. It does not exploit the flexibility of
+    # xarray, but it works.
 
     u1 = ds1[velname].data[:, ir1, ib1][it1, :]
     u2 = ds2[velname].data[:, ir2, ib2][it2, :]
@@ -130,10 +151,13 @@ def get_rmse_pairs(ds1, ds2, maxdist=150, nmin=10, flagname='PRIM', flagvalue=1)
     # Compute the RMSE of velocities
 
     npairs = ir1.shape[0]
-    rmse = np.zeros(npairs)
+    rmse = np.ma.array(data=np.zeros(npairs),
+                       mask=np.ones(npairs, dtype=bool))
     for k in np.arange(npairs):
         mask = np.logical_and(flag1[:, k] == 1, flag2[:, k] == 1)
-        rmse[k] = np.sqrt(np.mean((u1[mask, k] + u2[mask, k]) ** 2))
+        if np.sum(mask) > 2:
+            rmse.mask[k] = False
+            rmse[k] = np.sqrt(np.mean((u1[mask, k] + u2[mask, k]) ** 2))
 
     return angle, rmse, ir1, ib1, ir2, ib2
 
