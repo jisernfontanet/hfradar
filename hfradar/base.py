@@ -5,6 +5,7 @@ import os
 # Import scientific modules
 
 import numpy as np
+import scipy as sp
 import xarray as xr
 
 
@@ -88,6 +89,16 @@ def getinfo(ds, nmin=10, flagname='PRIM', flagvalue=1):
     lat = np.ma.array(data=ds.lat.data, mask=mask)
 
     return lon, lat, flag
+
+
+def hfr_rmse_model(x, stdu, stde):
+    return np.sqrt(4 * stdu ** 2 * np.cos(x * np.pi / 360) ** 2 + 2 * stde ** 2)
+
+
+def hfr_rmse_fit(angle, rmse, stdu=0.15, stde=0.08):
+    curve_fit = sp.optimize.curve_fit
+    param, cov = curve_fit(hfr_rmse_model, angle, rmse, p0=[stdu, stde])
+    return param[0], param[1], cov
 
 
 def hfr_rmse_pairs(ds1, ds2, maxdist=150, nmin=10, rmin=0, rmax=500,
@@ -307,7 +318,7 @@ def findpairs2d(xin1, yin1, xin2, yin2, maxdist=150, lon0=None, lat0=None, latlo
     return j1, i1, j2, i2
 
 
-def get_hfr_noise(datain, maxit=10, ksigma=3, return_coeff=False, nobs=None):
+def hfr_noise(datain, maxit=10, ksigma=3, return_coeff=False, nobs=None):
 
     # B3-Splines
 
