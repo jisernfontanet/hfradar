@@ -15,20 +15,24 @@ def lmercator(xin_, yin_, lon0=0, lat0=0, radius=6371000.0, inverse=False):
 
     Parameters
     ----------
-    xin: ndarray
+    xin : ndarray
         Longitude (inverse=False) or x-coordinate (inverse=True)
-    yin: ndarray
+    yin : ndarray
         Latitude (inverse=False) or y-coordinate (inverse=True)
-    lon0: float, optional, default=0
+    lon0 : float, optional, default=0
         Central longitude used to compute the projection (inverse=True)
-    lat0: float, optional, default=0
+    lat0 : float, optional, default=0
         Central latitude used to compute the projection (inverse=True)
+    radius : float, optional, default=6371000.0
+        Earth mean radius [m]
+    inverse : boolean, optional, default=False
+        Set to True for the inverse Mercator transform
 
     Returns
     -------
-    xout: ndarray
+    xout : ndarray
         x-coordinate (inverse=False) or Longitude (inverse=True)
-    yout: ndarray
+    yout : ndarray
         y-coordinate (inverse=False) or Latitude (inverse=True)
     """
 
@@ -55,7 +59,22 @@ def lmercator(xin_, yin_, lon0=0, lat0=0, radius=6371000.0, inverse=False):
 
 def synchronize(xref, x, dxmax=None):
     """
-    Given a refernce coordinate xref, find the closest point of x to each point in xref
+    Find the closest point of an array to a reference array
+
+    Parameters
+    ----------
+    xref : ndarray
+        Reference array
+    x : ndarray
+        Array to be synchronized with xref
+    dxmax : float, optional, default=None
+        Maximum allowed distance between points
+
+    Returns
+    -------
+    index : masked array
+        Index of x for the closest points in xref. It masks out those
+        points with a distance larger than dxmax
     """
 
     n, = xref.shape
@@ -74,6 +93,30 @@ def synchronize(xref, x, dxmax=None):
 
 
 def getinfo(ds, nmin=10, flagname='PRIM', flagvalue=1):
+    """
+    Counts the number of times a flag has a specific value
+
+    Parameters
+    ----------
+    ds : x-array dataset
+        Dataset to be inspected
+    nmin : integer
+        Minimum number of observations
+    flagname : string, optional, default='PRIM'
+        Name of the flag to be inspected
+    flagvalue : integer, optional, default=1
+        Expected value of the flag
+
+    Returns
+    -------
+    lon : masked array
+        Longitudes for which the flag has a specified value
+    lat : masked array
+        Latitudes for which the flag has a specified value
+    flag : xarray data array
+        Array with 1 in those locations wehere the flag had a
+        specified value
+    """
     # Flag the valid values
 
     flag = xr.zeros_like(ds[flagname], dtype=int)
@@ -92,10 +135,80 @@ def getinfo(ds, nmin=10, flagname='PRIM', flagvalue=1):
 
 
 def hfr_rmse_model(x, stdu, stde):
+    """
+    Dependence of the Root-Mean-Square-Error of the radial velocity
+    with the observing angle difference between two HF radar stations
+
+    Parameters
+    ----------
+    x : ndarray
+        Angle difference between stations
+    stdu : float
+        Standard deviation of the ocean currents
+    stde : float
+        Standrad deviation of noise of the HF radar stations
+
+    Returns
+    -------
+    rmse : ndarray
+        Root-Mean-Square-Error variation with the angle difference
+
+    Notes
+    -----
+    Implement the theoretical model for the Root-Mean-Square-Error
+    between the measurements of two different radial stations [1]_
+
+    .. math::
+        \sigma_{rms} = \left[4 \sigma_u^2 \cos^2\left(\frac{\theta_{R} - \theta_{R'}}{2}\right) + 2\sigma_{\epsilon R}^2
+
+    where :math:`\theta_{R}` and :math:`\theta_{R'}` denote the
+    azimuths (measured clockwise from North) of each radial;
+    :math:`\sigma_{\epsilon R}^2` is the noise variance of the radial
+    velocity; and :math:`\sigma_u^2` is the variance of the current.
+
+    References
+    ----------
+    .. [1] Kim, S. Y.; Terrill, E. J.; and B. D. Cornuelle (2008).
+       Mapping surface currents from HF radar radial velocity
+       measurements using optimal interpolation. Journal of
+       Geophysical Research: Oceans, 113, C10023.
+       http://doi.org/10.1029/2007JC004244.
+    """
     return np.sqrt(4 * stdu ** 2 * np.cos(x * np.pi / 360) ** 2 + 2 * stde ** 2)
 
 
 def hfr_rmse_fit(angle, rmse, stdu=0.15, stde=0.08):
+    """
+    Fit a set of observed Root-Mean-Square-Error of the radial
+    velocities between two diferen radar stations to a theoretical
+    model
+
+    Parameters
+    ----------
+    angle : ndarray
+        Angle difference between measurements of the two antennas
+        measured clockwise from North
+    rmse : ndarray
+        Observed Root-Mean-Square-Error
+    stdu : float, optional, default=0.15
+        First guess for the standard deviation of ocean currents
+    stde : float, optional, default=0.08
+        First guess for the standard deviation of noise
+
+    Returns
+    -------
+    stdu : float
+        Resulting standard deviation of ocean currents
+    stde : float
+        Resulting standard deviation of noise
+    cov : float
+        Resulting covariance
+
+    See Also
+    --------
+    hfr_rmse_model : Model used for the fitting.
+
+    """
     curve_fit = sp.optimize.curve_fit
     param, cov = curve_fit(hfr_rmse_model, angle, rmse, p0=[stdu, stde])
     return param[0], param[1], cov
@@ -104,7 +217,25 @@ def hfr_rmse_fit(angle, rmse, stdu=0.15, stde=0.08):
 def hfr_rmse_pairs(ds1, ds2, maxdist=150, nmin=10, rmin=0, rmax=500,
                    flagname='PRIM', flagvalue=1):
     """
-    Compute the Root Mean Square Error between two time-series
+    Compute the Root Mean Square Error between two time-series of HF
+    radar measurements of radial velocities
+
+    Parameters
+    ----------
+    ds1 : x-array dataset
+        Dataset with the
+    nmin : integer, optional, default=10
+        Minimum number of observations
+    flagname : string, optional, default='PRIM'
+        Name of the flag to be inspected
+    flagvalue : integer, optional, default=1
+        Expected value of the flag
+    maxdist: float, optional, default=150
+        Maximum distance between points to be keept as a pair [m]
+    rmin : float, optional, default=0
+        Minimum distance from the antenna [km]
+    rmax : float, optional, default=500
+        Maximum distance fron the antenna [km]
     """
     # Parameters
 
@@ -319,6 +450,52 @@ def findpairs2d(xin1, yin1, xin2, yin2, maxdist=150, lon0=None, lat0=None, latlo
 
 
 def hfr_noise(datain, maxit=10, ksigma=3, return_coeff=False, nobs=None):
+    """
+    Estimate the noise level of High-Frequency radar measurements of
+    radial velocities
+
+    Parameters
+    ----------
+    datain : masked array
+        Radial velocities [cm/s]. The dimensionality of velocities can
+        be 1, in which case it assumed that velocities are along a
+        radial; 2, in which case the first dimension is taken as the
+        radial direction and the second as the bearing; or 3, in which
+        case the diemsnions are taken as time, radial and bearing.
+    maxit : integer, optional, default=10
+        Maximum number of iterations used to compute the standard
+        deviation of noise
+    ksigma : integer, optional, default=3
+        parameter used to distinguish values dominated by noise from
+        those dominated by the signal
+    return_coeff : bool, optional, default=False
+        Set this coefficient to return the wavelet coefficients labeled
+        as noise.
+    nobs : ndarray, optional, default=None
+        Set this parameter to the number of values used to average
+        input data. It must have a diensionality of 3, independently of
+        the dimensionality of the input data
+
+    Returns
+    -------
+    noise : ndarray
+        Noise standard deviation at each time step
+
+    w1 : ndarray
+        Wavelet coefficients labeled as noise
+
+    Notes
+    -----
+    The method used to compute the noise standard deviation is described in [1]_
+
+    References
+    ----------
+    .. [1] Isern-Fontanet, J; Quirós-Collazos, L.; Iglesias, J.;
+       Martínez, J; Ballabrera-Poy, J.; Agostinho, P.; González-Haro,
+       C.; and García-Ladona, E. (2026). Data-Driven Noise Estimation
+       for Individual High-Frequency Radar Stations**. Submitted to
+       J. Atmos. Oceanic Technol.
+    """
 
     # B3-Splines
 
