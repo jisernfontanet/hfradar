@@ -23,14 +23,18 @@ and Cartopy packages.
 | `hfr_rmse_fit`   | Fit a set of observed Root-Mean-Square-Error of the radial velocities between two diferen radar stations to a theoretical model   |
 | `hfr_rmse_model` | Dependence of the Root-Mean-Square-Error of the radial velocity with the observing angle difference between two HF radar stations |
 | `lmercator`      | Compute the Mercator projection centered at the center of the image                                                               |
+| `read_ctf`       | Read a CODAR CTF (Columnar Table Format) text files                                                                               |
+| `read_lluv`      | Read a CODAR LLUV (Lon/Lat/U/V) files                                                                                             |
+| `read_ruv`       | Reads a CODAR Radial Velocities files (.ruv)                                                                                      |
 
 ## Tutorial
 
 In addition to the core functions, this package contains some tutorials.
 
-| Tutorial                       | Description                        |
-|--------------------------------|------------------------------------|
-| `estimate_noise_l2_data.ipynb` | Create the figure of the paper [1] |
+| Tutorial                       | Description                                                   |
+|--------------------------------|---------------------------------------------------------------|
+| `estimate_noise_l2_data.ipynb` | Create the figure of the paper [1]                            |
+| `reading_data.ipynb`           | Show how to use the reading functions provided by the package |
 
 ## Contributors
 
