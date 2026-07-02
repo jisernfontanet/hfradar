@@ -32,11 +32,17 @@ In addition to the core functions, this package contains some tutorials.
 |--------------------------------|------------------------------------|
 | `estimate_noise_l2_data.ipynb` | Create the figure of the paper [1] |
 
-## Constributors
+## Contributors
 
 Isern-Fontanet, J; Quirós-Collazos, L.; Iglesias, J.; Martínez, J; 
 Ballabrera-Poy, J.; González-Haro, C.; and García-Ladona, E.
 
+## AI usage
+
+AI agents have been used in the development of the following functions 
+and modules
+
+* `readers/ctf.py` and `readers/lluv.py` have been built using `claude code`
 
 ## Acknowledgements
 
