@@ -16,16 +16,17 @@ and Cartopy packages.
 
 ## Core functions
 
-| Function         | Description                                                                                                                       |
-|------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `hfr_noise`      | Estimate the noise level of High-Frequency radar measurements of radial velocities                                                |
-| `hfr_rmse_pairs` | Compute the Root Mean Square Error between two time-series of HF radar measurements of radial velocities                          |
-| `hfr_rmse_fit`   | Fit a set of observed Root-Mean-Square-Error of the radial velocities between two diferen radar stations to a theoretical model   |
-| `hfr_rmse_model` | Dependence of the Root-Mean-Square-Error of the radial velocity with the observing angle difference between two HF radar stations |
-| `lmercator`      | Compute the Mercator projection centered at the center of the image                                                               |
-| `read_ctf`       | Read a CODAR CTF (Columnar Table Format) text files                                                                               |
-| `read_lluv`      | Read a CODAR LLUV (Lon/Lat/U/V) files                                                                                             |
-| `read_ruv`       | Reads a CODAR Radial Velocities files (.ruv)                                                                                      |
+| Function             | Description                                                                                                                       |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `hfr_noise`          | Estimate the noise level of High-Frequency radar measurements of radial velocities                                                |
+| `hfr_rmse_pairs`     | Compute the Root Mean Square Error between two time-series of HF radar measurements of radial velocities                          |
+| `hfr_rmse_fit`       | Fit a set of observed Root-Mean-Square-Error of the radial velocities between two diferen radar stations to a theoretical model   |
+| `hfr_rmse_model`     | Dependence of the Root-Mean-Square-Error of the radial velocity with the observing angle difference between two HF radar stations |
+| `lmercator`          | Compute the Mercator projection centered at the center of the image                                                               |
+| `read_ctf`           | Read a CODAR CTF (Columnar Table Format) text files                                                                               |
+| `read_lluv`          | Read a CODAR LLUV (Lon/Lat/U/V) files                                                                                             |
+| `read_ruv`           | Reads a CODAR Radial Velocities files (.ruv)                                                                                      |
+| `read_cross_spectra` | Reads a CODAR Cross Spectra files (.cs and .csr)                                                                                  |
 
 ## Tutorial
 
@@ -46,7 +47,7 @@ Ballabrera-Poy, J.; González-Haro, C.; and García-Ladona, E.
 AI agents have been used in the development of the following functions 
 and modules
 
-* `readers/ctf.py` and `readers/lluv.py` have been built using `claude code`
+* `readers/ctf.py`, `readers/lluv.py` and `readers/cross_spectra.py` have been built using `claude code`
 
 ## Acknowledgements
 
