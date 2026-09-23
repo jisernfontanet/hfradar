@@ -64,11 +64,11 @@ def read_ruv(filename):
 
     # Range
 
-    rang = np.arange(ncells) * drange
+    rang = (np.arange(ncells) + 1) * drange
 
     # Range cell index
 
-    j = data['data']['sprc'].astype(int)
+    j = data['data']['sprc'].astype(int) - 1
 
     # Bearings
 
