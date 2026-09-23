@@ -12,9 +12,8 @@ conda activate "$CONDA_ENV"                 # Activate the CONDA environment
 
 # Run the code
 
-echo "$CODENAME_CODAR"
-echo "$CONDA_SOURCE_SHELL"
-echo "$CONDA_ENV"
-#python "$CODE_PATH/$CODENAME_CODAR"
+for STATNAME in "${STATIONS[@]}"; do
+  python "$CODE_PATH/$CODENAME_CODAR" -p "$CODAR_PATH_RUV/$STATNAME"
+done
 
 
