@@ -8,7 +8,7 @@ from pyproj import Geod
 
 
 # AI Usage: the first version of the following function has been written
-# using GPT 5.6 and later modified
+# using OpenAI GPT 5.6 and later modified
 
 
 def velocity_to_kml(
