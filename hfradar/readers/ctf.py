@@ -7,6 +7,10 @@ from typing import IO
 
 import numpy as np
 
+# AI Usage: the first version of the following function has been written
+# using Anthropic's Claude Code
+
+
 _KEYWORD_RE = re.compile(r'^%([A-Za-z][^:]*):(.*)$')
 
 # Table-scoped keywords — not stored in metadata, used only to build table dicts.

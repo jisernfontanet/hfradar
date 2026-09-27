@@ -9,6 +9,10 @@ import numpy as np
 
 from . ctf import _parse_ctf_stream
 
+# AI Usage: the first version of the following function has been written
+# using Anthropic's Claude Code
+
+
 # Columns affected by %XYUnits: scaling
 _XY_COLS = {"xdst", "ydst", "rnge"}
 # Columns affected by %UVUnits: scaling

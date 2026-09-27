@@ -3,6 +3,9 @@ import numpy as np
 import xarray as xr
 from . lluv import read_lluv
 
+# AI Usage: the first version of the following function has been written
+# using Anthropic's Claude Code
+
 
 def read_ruv(filename):
     """

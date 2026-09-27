@@ -26,6 +26,10 @@ _REDUCED_MAGIC_LE = {b"WSSC", b"YSSC"}
 _REDUCED_MAGIC = _REDUCED_MAGIC_BE | _REDUCED_MAGIC_LE
 
 
+# AI Usage: the first version of the following function has been written
+# using Anthropic's Claude Code
+
+
 # ─── Public API ───────────────────────────────────────────────────────────────
 
 def read_cross_spectra(filename: str) -> dict:
